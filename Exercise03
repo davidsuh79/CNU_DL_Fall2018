@@ -84,7 +84,7 @@ accuracy = mean(predictionOut == imageTestSet.Labels)
 
 
 
-% Display 20 randomly selected images from test set, and show prediction and ground truth
+% Display 6 randomly selected images from test set, and show prediction and ground truth
 randSelectTest = randperm(numel(imageTestSet.Files),6);
 figure
 for i = 1:6
