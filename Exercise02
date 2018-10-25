@@ -1,0 +1,106 @@
+% Deep learning exercise: digit classification with a simple deep network
+% Requirement: Matlab 2018+ (neural network toolbox)
+% Download digit dataset (zip file) and extract a zip file from http://bit.ly/2ywjxAh (Ex01_DigitDataset.zip)
+% Make sure that a zip file is extracted to a folder 'Ex01_DigitDataset'
+
+
+
+% Read and store dataset images
+clear; clc;
+dataset_folder = 'Ex01_DigitDataset';
+imageDataset = imageDatastore(dataset_folder,'IncludeSubfolders',true,'LabelSource','foldernames');
+
+
+
+% Check if the dataset is properly loaded
+% Check the label, and count the total number of images
+label_count = countEachLabel(imageDataset)
+totalCount = size(imageDataset.Files,1)
+
+
+
+% Randomly select 25 images and display
+figure;
+randImageSelection = randperm(totalCount,25);
+for i = 1:25
+    subplot(5,5,i);
+    imshow(imageDataset.Files{randImageSelection(i)});
+end
+
+
+
+% Construct a simple shallow CNN
+% Three conv layers with relu and max-pooling, followed by fully-connected layer (FC layer) and softmax layer
+
+CNN_layers = [
+    imageInputLayer([28 28 1])
+    
+    convolution2dLayer([3 3],8)
+    reluLayer
+    maxPooling2dLayer([2 2],'Stride',2)
+    
+    convolution2dLayer([3 3],16)
+    reluLayer
+    maxPooling2dLayer([2 2],'Stride',2)
+    
+    convolution2dLayer([3 3],32)
+    reluLayer
+    
+    fullyConnectedLayer(10)
+    softmaxLayer
+    classificationLayer
+];
+
+
+% Split image dataset into 'training:validation:test' (or simply 'training:validation' is also fine)
+% In this exercise, we will split 'training:validation:test = 70:15:15' (you may choose other ratio)
+% First, split the entire dataset into training vs (validation & test) --> 70%:30%
+% Second, split (validation & test) dataset into validation vs test, 50%:50% --> 15%:15%
+
+[imageTrainSet,imageValTestSet] = splitEachLabel(imageDataset,0.7,'randomized');
+[imageValidationSet,imageTestSet] = splitEachLabel(imageValTestSet,0.5,'randomized');
+
+
+
+% Configure training options
+CNNtrainOptions = trainingOptions('sgdm', ...
+    'InitialLearnRate',0.01, ...
+    'MaxEpochs',6, ...
+    'ValidationData',imageValidationSet, ...
+    'ValidationFrequency',30, ...
+    'Plots','training-progress');
+
+
+
+% Begin the network training
+trainedNetwork = trainNetwork(imageTrainSet,CNN_layers,CNNtrainOptions);
+
+
+
+% Compute accuracy on test set
+[predictionOut,probabilityOut] = classify(trainedNetwork,imageTestSet);
+accuracy = mean(predictionOut == imageTestSet.Labels)
+
+
+
+% Display 20 randomly selected images from test set, and show prediction and ground truth
+randSelectTest = randperm(numel(imageTestSet.Files),20);
+figure
+for i = 1:20
+    subplot(4,5,i)
+    I = readimage(imageTestSet,randSelectTest(i));
+    imshow(I)
+    predictionLabel = predictionOut(randSelectTest(i));
+    gtlabelNow = char(imageTestSet.Labels(randSelectTest(i)));
+    
+    if strcmp(char(predictionLabel),gtlabelNow(1))
+        title({'Predicted:' + string(predictionLabel) + '(' + ...
+              num2str(100*max(probabilityOut(randSelectTest(i),:)),3)+ '%)',...
+              'TrueValue:' + string(gtlabelNow)});
+    else
+        title({'\color{red}Predicted:' + string(predictionLabel) + '(' + ...
+              num2str(100*max(probabilityOut(randSelectTest(i),:)),3)+ '%)',...
+              'TrueValue:' + string(gtlabelNow)});
+    end
+end
+
