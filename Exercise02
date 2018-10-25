@@ -1,13 +1,13 @@
 % Deep learning exercise: digit classification with a simple deep network
 % Requirement: Matlab 2018+ (neural network toolbox)
-% Download digit dataset (zip file) and extract a zip file from http://bit.ly/2ywjxAh (Ex01_DigitDataset.zip)
-% Make sure that a zip file is extracted to a folder 'Ex01_DigitDataset'
+% Download digit dataset (zip file) and extract a zip file from http://bit.ly/2ywjxAh (MNIST_DigitDataset.zip)
+% Make sure that a zip file is extracted to a folder 'MNIST_DigitDataset'
 
 
 
 % Read and store dataset images
 clear; clc;
-dataset_folder = 'Ex01_DigitDataset';
+dataset_folder = 'MNIST_DigitDataset';
 imageDataset = imageDatastore(dataset_folder,'IncludeSubfolders',true,'LabelSource','foldernames');
 
 
